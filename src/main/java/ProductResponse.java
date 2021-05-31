@@ -10,4 +10,7 @@ public class ProductResponse {
     private Double width;
     private Double price;
     private Currency currency;
+    private Double availableStock;
+    private Integer row;
+    private Integer shell;
 }
