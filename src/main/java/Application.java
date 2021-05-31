@@ -102,7 +102,7 @@ public class Application {
         HttpServer server = HttpServer.create(new InetSocketAddress(serverPort), 0);
         server.createContext("/v1/product", (exchange -> {
 
-            if ("GET".equals(exchange.getRequestMethod())) {
+            if ("POST".equals(exchange.getRequestMethod())) {
 
                 StringBuilder sb = new StringBuilder();
                 InputStream ios = exchange.getRequestBody();
