@@ -1,4 +1,3 @@
-import com.github.tomakehurst.wiremock.client.WireMock;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import com.sun.net.httpserver.HttpServer;
@@ -12,91 +11,12 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.notFound;
-import static com.github.tomakehurst.wiremock.client.WireMock.ok;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static java.util.stream.Collectors.toList;
 
 public class Application {
 
     public static void main(String[] args) throws IOException {
-        WireMock.configureFor("localhost", 8443);
-
-        stubFor(get("/product?productId=700110")
-                .willReturn(ok()
-                        .withHeader("Content-Type", "text/xml")
-                        .withBody("{\n" +
-                                "\t\"title\": \"title\",\n" +
-                                "\t\"description\": \"description\",\n" +
-                                "\t\"weight\": 3,\n" +
-                                "\t\"height\": 0.1,\n" +
-                                "\t\"length\": 0.1,\n" +
-                                "\t\"width\": 0.1\n" +
-                                "}")));
-
-/*
-        stubFor(get("/product?productId=700110")
-                .willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)));
-
-        stubFor(get("/product?productId=700110")
-                .willReturn(ok()
-                        .withHeader("Content-Type", "text/xml")
-                        .withBody("123")));
-
-        stubFor(get("/product?productId=700110")
-                .willReturn(notFound()));
-*/
-
-        stubFor(get("/price?productId=700110")
-                .willReturn(ok()
-                        .withHeader("Content-Type", "text/xml")
-                        .withBody("{\n" +
-                                "\t\"price\": 5,\n" +
-                                "\t\"currency\": \"RUR\"\n" +
-                                "}")));
-
-/*
-        stubFor(get("/price?productId=700110")
-                .willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)));
-
-        stubFor(get("/price?productId=700110")
-                .willReturn(ok()
-                        .withHeader("Content-Type", "text/xml")
-                        .withBody("123")));
-
-        stubFor(get("/price?productId=700110")
-                .willReturn(notFound()));
-*/
-
-        stubFor(get("/stock?productId=700110")
-                .willReturn(ok()
-                        .withHeader("Content-Type", "text/xml")
-                        .withBody("{\n" +
-                                "\t\"availableStock\": 20,\n" +
-                                "\t\"row\": 1,\n" +
-                                "\t\"shell\": 3\n" +
-                                "}")));
-
-/*
-        stubFor(get("/stock?productId=700110")
-                .willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)));
-
-        stubFor(get("/stock?productId=700110")
-                .willReturn(ok()
-                        .withHeader("Content-Type", "text/xml")
-                        .withBody("123")));
-
-        stubFor(get("/stock?productId=700110")
-                .willReturn(notFound()));
-*/
 
         int serverPort = 8000;
         HttpServer server = HttpServer.create(new InetSocketAddress(serverPort), 0);
