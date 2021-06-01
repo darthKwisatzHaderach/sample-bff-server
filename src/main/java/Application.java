@@ -1,18 +1,16 @@
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import com.sun.net.httpserver.HttpServer;
-import org.apache.http.client.utils.URIBuilder;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.HashMap;
-import java.util.Map;
 
 public class Application {
 
@@ -32,8 +30,6 @@ public class Application {
                 }
 
                 ProductRequest productRequest = new Gson().fromJson(sb.toString(), ProductRequest.class);
-                Map<String, String> queryParams = new HashMap<>();
-                queryParams.put("productId", productRequest.getProductId());
 
                 ProductInfo productInfo = new ProductInfo();
                 ProductPrice productPrice = new ProductPrice();
@@ -41,7 +37,7 @@ public class Application {
                 ErrorResponse errorResponse = null;
 
                 try {
-                    HttpResponse<String> productInfoResponse = getRequest("/product", queryParams);
+                    HttpResponse<String> productInfoResponse = postRequest("/info", productRequest.getProductId());
                     productInfo = new Gson().fromJson(productInfoResponse.body(), ProductInfo.class);
 
                     if (productInfoResponse.statusCode() == 404) {
@@ -64,7 +60,7 @@ public class Application {
                 }
 
                 try {
-                    HttpResponse<String> productPriceResponse = getRequest("/price", queryParams);
+                    HttpResponse<String> productPriceResponse = postRequest("/price", productRequest.getProductId());
                     productPrice = new Gson().fromJson(productPriceResponse.body(), ProductPrice.class);
 
                     if (productPriceResponse.statusCode() == 404) {
@@ -88,7 +84,7 @@ public class Application {
 
                 if (productRequest.getSource() == Source.OFFLINE) {
                     try {
-                        HttpResponse<String> productStockInfoResponse = getRequest("/stock", queryParams);
+                        HttpResponse<String> productStockInfoResponse = postRequest("/stock", productRequest.getProductId());
                         productStockInfo = new Gson().fromJson(productStockInfoResponse.body(), ProductStockInfo.class);
 
                         if (productStockInfoResponse.statusCode() == 404) {
@@ -152,19 +148,13 @@ public class Application {
         server.start();
     }
 
-    private static HttpResponse<String> getRequest(String path, Map<String, String> params) throws IOException, InterruptedException, URISyntaxException {
+    private static HttpResponse<String> postRequest(String path, Object body) throws IOException, InterruptedException, URISyntaxException {
+        Gson gson = new Gson();
         HttpClient client = HttpClient.newHttpClient();
 
-        URIBuilder uriBuilder = new URIBuilder();
-        uriBuilder.setScheme("http").setHost("localhost").setPort(8443).setPath(path);
-
-        for (Map.Entry<String, String> entry : params.entrySet()) {
-            uriBuilder.setParameter(entry.getKey(), entry.getValue());
-        }
-
         HttpRequest productsRequest = HttpRequest.newBuilder()
-                .GET()
-                .uri(uriBuilder.build())
+                .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(body)))
+                .uri(URI.create("http://localhost:8443" + path))
                 .header("Accept", "application/json")
                 .build();
 
