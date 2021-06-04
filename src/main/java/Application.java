@@ -22,6 +22,8 @@ public class Application {
 
             if ("POST".equals(exchange.getRequestMethod())) {
 
+                int statusCode = 200;
+
                 StringBuilder sb = new StringBuilder();
                 InputStream ios = exchange.getRequestBody();
                 int i;
@@ -29,6 +31,7 @@ public class Application {
                     sb.append((char) i);
                 }
 
+                System.out.println(sb);
                 ProductRequest productRequest = new Gson().fromJson(sb.toString(), ProductRequest.class);
 
                 ProductInfo productInfo = new ProductInfo();
@@ -41,22 +44,25 @@ public class Application {
                     productInfo = new Gson().fromJson(productInfoResponse.body(), ProductInfo.class);
 
                     if (productInfoResponse.statusCode() == 404) {
-                        errorResponse = new ErrorResponse();
-                        errorResponse.setCode(107);
-                        errorResponse.setMessage("ProductInfo not found.");
+                        errorResponse = new ErrorResponse(107, "ProductInfo not found.");
+                        statusCode = 404;
                     }
+
+                    if (productInfoResponse.statusCode() == 500) {
+                        errorResponse = new ErrorResponse(101, "ProductInfo service error.");
+                        statusCode = 500;
+                    }
+
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } catch (URISyntaxException e) {
                     e.printStackTrace();
                 } catch (JsonParseException e) {
-                    errorResponse = new ErrorResponse();
-                    errorResponse.setCode(104);
-                    errorResponse.setMessage("ProductInfo unexpected response: " + e.getMessage());
+                    errorResponse = new ErrorResponse(104, "ProductInfo unexpected response: " + e.getMessage());
+                    statusCode = 500;
                 } catch (IOException e) {
-                    errorResponse = new ErrorResponse();
-                    errorResponse.setCode(101);
-                    errorResponse.setMessage("ProductInfo service error: " + e.getMessage());
+                    errorResponse = new ErrorResponse(101, "ProductInfo service error: " + e.getMessage());
+                    statusCode = 500;
                 }
 
                 try {
@@ -64,22 +70,25 @@ public class Application {
                     productPrice = new Gson().fromJson(productPriceResponse.body(), ProductPrice.class);
 
                     if (productPriceResponse.statusCode() == 404) {
-                        errorResponse = new ErrorResponse();
-                        errorResponse.setCode(108);
-                        errorResponse.setMessage("ProductPrice not found.");
+                        errorResponse = new ErrorResponse(108, "ProductPrice not found.");
+                        statusCode = 404;
                     }
+
+                    if (productPriceResponse.statusCode() == 500) {
+                        errorResponse = new ErrorResponse(102, "ProductPrice service error.");
+                        statusCode = 500;
+                    }
+
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } catch (URISyntaxException e) {
                     e.printStackTrace();
                 } catch (JsonParseException e) {
-                    errorResponse = new ErrorResponse();
-                    errorResponse.setCode(105);
-                    errorResponse.setMessage("ProductPrice unexpected response: " + e.getMessage());
+                    errorResponse = new ErrorResponse(105, "ProductPrice unexpected response: " + e.getMessage());
+                    statusCode = 500;
                 } catch (IOException e) {
-                    errorResponse = new ErrorResponse();
-                    errorResponse.setCode(102);
-                    errorResponse.setMessage("ProductPrice service error: " + e.getMessage());
+                    errorResponse = new ErrorResponse(102, "ProductPrice service error: " + e.getMessage());
+                    statusCode = 500;
                 }
 
                 if (productRequest.getSource() == Source.OFFLINE) {
@@ -88,26 +97,28 @@ public class Application {
                         productStockInfo = new Gson().fromJson(productStockInfoResponse.body(), ProductStockInfo.class);
 
                         if (productStockInfoResponse.statusCode() == 404) {
-                            errorResponse = new ErrorResponse();
-                            errorResponse.setCode(109);
-                            errorResponse.setMessage("ProductStock not found.");
+                            errorResponse = new ErrorResponse(109, "ProductStock not found.");
+                            statusCode = 404;
+                        }
+                        if (productStockInfoResponse.statusCode() == 500) {
+                            errorResponse = new ErrorResponse(103, "ProductStock service error.");
+                            statusCode = 500;
                         }
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     } catch (URISyntaxException e) {
                         e.printStackTrace();
                     } catch (JsonParseException e) {
-                        errorResponse = new ErrorResponse();
-                        errorResponse.setCode(106);
-                        errorResponse.setMessage("ProductStock unexpected response: " + e.getMessage());
+                        errorResponse = new ErrorResponse(106, "ProductStock unexpected response: " + e.getMessage());
+                        statusCode = 500;
                     } catch (IOException e) {
-                        errorResponse = new ErrorResponse();
-                        errorResponse.setCode(103);
-                        errorResponse.setMessage("ProductStock service error: " + e.getMessage());
+                        errorResponse = new ErrorResponse(103, "ProductStock service error: " + e.getMessage());
+                        statusCode = 500;
                     }
                 }
 
                 String response = null;
+                exchange.getResponseHeaders().set("Content-Type", "application/json");
 
                 if (errorResponse != null) {
                     response = new Gson().toJson(errorResponse);
@@ -134,8 +145,8 @@ public class Application {
                     response = new Gson().toJson(productResponse);
                 }
 
-                exchange.getResponseHeaders().set("Content-Type", "application/json");
-                exchange.sendResponseHeaders(200, response.getBytes().length);
+                exchange.sendResponseHeaders(statusCode, response.getBytes().length);
+
                 OutputStream output = exchange.getResponseBody();
                 output.write(response.getBytes());
                 output.flush();
