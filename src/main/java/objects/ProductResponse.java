@@ -1,3 +1,6 @@
+package objects;
+
+import enums.Currency;
 import lombok.Data;
 
 @Data

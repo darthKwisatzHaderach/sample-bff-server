@@ -1,3 +1,6 @@
+package objects;
+
+import enums.Source;
 import lombok.Data;
 
 @Data
