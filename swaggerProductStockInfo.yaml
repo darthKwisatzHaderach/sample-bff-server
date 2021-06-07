@@ -1,0 +1,47 @@
+openapi: 3.0.1
+info:
+  title: ProductStockInfo
+  version: 1.0.0
+paths:
+  /info:
+    post:
+      tags:
+        - ProductStockInfo
+      operationId: getProductStockInfoById
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              $ref: '#/components/schemas/ProductStockInfoRequest'
+        required: true
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductStockInfoResponse'
+        404:
+          description: not found
+          content: {}
+        500:
+          description: server error
+          content: {}
+components:
+  schemas:
+    ProductStockInfoRequest:
+      required:
+        - productId
+      type: object
+      properties:
+        productId:
+          type: string
+    ProductStockInfoResponse:
+      type: object
+      properties:
+        availableStock:
+          type: number
+        row:
+          type: number
+        shell:
+          type: number

@@ -1,0 +1,53 @@
+openapi: 3.0.1
+info:
+  title: ProductInfo
+  version: 1.0.0
+paths:
+  /info:
+    post:
+      tags:
+        - ProductInfo
+      operationId: getProductInfoById
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              $ref: '#/components/schemas/ProductInfoRequest'
+        required: true
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductInfoResponse'
+        404:
+          description: not found
+          content: {}
+        500:
+          description: server error
+          content: {}
+components:
+  schemas:
+    ProductInfoRequest:
+      required:
+        - productId
+      type: object
+      properties:
+        productId:
+          type: string
+    ProductInfoResponse:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        weight:
+          type: number
+        height:
+          type: number
+        length:
+          type: number
+        width:
+          type: number
