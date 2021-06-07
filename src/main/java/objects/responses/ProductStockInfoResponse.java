@@ -1,9 +1,9 @@
-package objects;
+package objects.responses;
 
 import lombok.Data;
 
 @Data
-public class ProductStockInfo {
+public class ProductStockInfoResponse {
     private Double availableStock;
     private Integer row;
     private Integer shell;

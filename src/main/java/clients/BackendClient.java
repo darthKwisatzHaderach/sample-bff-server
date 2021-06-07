@@ -22,6 +22,11 @@ public class BackendClient {
                 .header("Accept", "application/json")
                 .build();
 
+        System.out.println("--------------------------------------------");
+        System.out.println(String.format("Sending request to %s:", path));
+        System.out.println(productsRequest);
+        System.out.println(gson.toJson(body));
+
         HttpResponse<String> response = null;
 
         try {
@@ -30,6 +35,7 @@ public class BackendClient {
             e.printStackTrace();
         }
 
+        System.out.println("--------------------------------------------");
         System.out.println(String.format("Received response from %s:", path));
         System.out.println(response);
         System.out.println(response.body());

@@ -1,4 +1,4 @@
-package objects;
+package objects.requests;
 
 import enums.Source;
 import lombok.Data;

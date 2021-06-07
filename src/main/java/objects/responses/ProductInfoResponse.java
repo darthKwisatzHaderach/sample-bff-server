@@ -1,9 +1,9 @@
-package objects;
+package objects.responses;
 
 import lombok.Data;
 
 @Data
-public class ProductInfo {
+public class ProductInfoResponse {
     private String title;
     private String description;
     private double weight;

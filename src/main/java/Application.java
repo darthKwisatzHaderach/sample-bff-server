@@ -3,12 +3,15 @@ import com.google.gson.JsonParseException;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import enums.Source;
-import objects.ErrorResponse;
-import objects.ProductInfo;
-import objects.ProductPrice;
-import objects.ProductRequest;
-import objects.ProductResponse;
-import objects.ProductStockInfo;
+import objects.requests.ProductInfoRequest;
+import objects.requests.ProductPriceRequest;
+import objects.requests.ProductRequest;
+import objects.requests.ProductStockInfoRequests;
+import objects.responses.ErrorResponse;
+import objects.responses.ProductInfoResponse;
+import objects.responses.ProductPriceResponse;
+import objects.responses.ProductResponse;
+import objects.responses.ProductStockInfoResponse;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,15 +35,17 @@ public class Application {
 
                 ProductRequest productRequest = processingRequest(exchange);
 
-                ProductInfo productInfo = new ProductInfo();
-                ProductPrice productPrice = new ProductPrice();
-                ProductStockInfo productStockInfo = new ProductStockInfo();
+                ProductInfoResponse productInfoResponse = new ProductInfoResponse();
+                ProductPriceResponse productPriceResponse = new ProductPriceResponse();
+                ProductStockInfoResponse productStockInfoResponse = new ProductStockInfoResponse();
                 ErrorResponse errorResponse = null;
 
                 HttpResponse<String> serviceResponse = null;
 
+                ProductInfoRequest productInfoRequest = new ProductInfoRequest(productRequest.getProductId());
+
                 try {
-                    serviceResponse = postRequest("/info", productRequest.getProductId());
+                    serviceResponse = postRequest("/info", productInfoRequest);
 
                     if (serviceResponse.statusCode() == 404) {
                         errorResponse = new ErrorResponse(107, "ProductInfo not found.");
@@ -59,15 +64,17 @@ public class Application {
 
                 if (errorResponse == null) {
                     try {
-                        productInfo = new Gson().fromJson(serviceResponse.body(), ProductInfo.class);
+                        productInfoResponse = new Gson().fromJson(serviceResponse.body(), ProductInfoResponse.class);
                     } catch (JsonParseException e) {
                         errorResponse = new ErrorResponse(104, "ProductInfo unexpected response.");
                         statusCode = 500;
                     }
                 }
 
+                ProductPriceRequest productPriceRequest = new ProductPriceRequest(productRequest.getProductId());
+
                 try {
-                    serviceResponse = postRequest("/price", productRequest.getProductId());
+                    serviceResponse = postRequest("/price", productPriceRequest);
 
                     if (serviceResponse.statusCode() == 404) {
                         errorResponse = new ErrorResponse(108, "ProductPrice not found.");
@@ -86,7 +93,7 @@ public class Application {
 
                 if (errorResponse == null) {
                     try {
-                        productPrice = new Gson().fromJson(serviceResponse.body(), ProductPrice.class);
+                        productPriceResponse = new Gson().fromJson(serviceResponse.body(), ProductPriceResponse.class);
                     } catch (JsonParseException e) {
                         errorResponse = new ErrorResponse(105, "ProductPrice unexpected response.");
                         statusCode = 500;
@@ -94,8 +101,11 @@ public class Application {
                 }
 
                 if (productRequest.getSource() == Source.OFFLINE) {
+
+                    ProductStockInfoRequests productStockInfoRequests = new ProductStockInfoRequests(productRequest.getProductId());
+
                     try {
-                        serviceResponse = postRequest("/stock", productRequest.getProductId());
+                        serviceResponse = postRequest("/stock", productStockInfoRequests);
 
                         if (serviceResponse.statusCode() == 404) {
                             errorResponse = new ErrorResponse(109, "ProductStock not found.");
@@ -117,7 +127,7 @@ public class Application {
 
                 if (errorResponse == null) {
                     try {
-                        productStockInfo = new Gson().fromJson(serviceResponse.body(), ProductStockInfo.class);
+                        productStockInfoResponse = new Gson().fromJson(serviceResponse.body(), ProductStockInfoResponse.class);
                     } catch (JsonParseException e) {
                         errorResponse = new ErrorResponse(106, "ProductStock unexpected response.");
                         statusCode = 500;
@@ -130,7 +140,7 @@ public class Application {
                 if (errorResponse != null) {
                     response = new Gson().toJson(errorResponse);
                 } else {
-                    ProductResponse productResponse = aggregateProductResponse(productRequest, productInfo, productPrice, productStockInfo);
+                    ProductResponse productResponse = aggregateProductResponse(productRequest, productInfoResponse, productPriceResponse, productStockInfoResponse);
                     response = new Gson().toJson(productResponse);
                 }
 
@@ -163,24 +173,24 @@ public class Application {
         return productRequest;
     }
 
-    private static ProductResponse aggregateProductResponse(ProductRequest productRequest, ProductInfo productInfo, ProductPrice productPrice, ProductStockInfo productStockInfo) {
+    private static ProductResponse aggregateProductResponse(ProductRequest productRequest, ProductInfoResponse productInfoResponse, ProductPriceResponse productPriceResponse, ProductStockInfoResponse productStockInfoResponse) {
         ProductResponse productResponse = new ProductResponse();
-        productResponse.setTitle(productInfo.getTitle());
-        productResponse.setPrice(productPrice.getPrice());
-        productResponse.setCurrency(productPrice.getCurrency());
+        productResponse.setTitle(productInfoResponse.getTitle());
+        productResponse.setPrice(productPriceResponse.getPrice());
+        productResponse.setCurrency(productPriceResponse.getCurrency());
 
         if (productRequest.getSource() != Source.MOBILE) {
-            productResponse.setDescription(productInfo.getDescription());
-            productResponse.setWeight(productInfo.getWeight());
-            productResponse.setHeight(productInfo.getHeight());
-            productResponse.setLength(productInfo.getLength());
-            productResponse.setWidth(productInfo.getWidth());
+            productResponse.setDescription(productInfoResponse.getDescription());
+            productResponse.setWeight(productInfoResponse.getWeight());
+            productResponse.setHeight(productInfoResponse.getHeight());
+            productResponse.setLength(productInfoResponse.getLength());
+            productResponse.setWidth(productInfoResponse.getWidth());
         }
 
         if (productRequest.getSource() == Source.OFFLINE) {
-            productResponse.setAvailableStock(productStockInfo.getAvailableStock());
-            productResponse.setRow(productStockInfo.getRow());
-            productResponse.setShell(productStockInfo.getShell());
+            productResponse.setAvailableStock(productStockInfoResponse.getAvailableStock());
+            productResponse.setRow(productStockInfoResponse.getRow());
+            productResponse.setShell(productStockInfoResponse.getShell());
         }
 
         return productResponse;

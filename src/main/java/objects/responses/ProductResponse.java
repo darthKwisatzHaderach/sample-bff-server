@@ -1,4 +1,4 @@
-package objects;
+package objects.responses;
 
 import enums.Currency;
 import lombok.Data;
